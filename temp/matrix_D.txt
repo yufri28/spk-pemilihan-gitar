@@ -1,0 +1,58 @@
+SELECT a.nama_gitar,
+       MAX(CASE WHEN k.id_kriteria = 'C1' THEN sk.bobot_sub_kriteria END) AS C1,
+       MIN(CASE WHEN k.id_kriteria = 'C2' THEN sk.bobot_sub_kriteria END) AS C2,
+       MIN(CASE WHEN k.id_kriteria = 'C3' THEN sk.bobot_sub_kriteria END) AS C3,
+       MAX(CASE WHEN k.id_kriteria = 'C4' THEN sk.bobot_sub_kriteria END) AS C4,
+       MAX(CASE WHEN k.id_kriteria = 'C5' THEN sk.bobot_sub_kriteria END) AS C5,
+       (MAX(CASE WHEN k.id_kriteria = 'C1' THEN sk.bobot_sub_kriteria END) 
+       / 
+       (SELECT SUM(CASE WHEN k.id_kriteria = 'C1' THEN sk.bobot_sub_kriteria END) 
+        FROM alternatif a
+        JOIN kecocokan_alt_kriteria kak ON a.id_alternatif = kak.f_id_alternatif
+        JOIN sub_kriteria sk ON kak.f_id_sub_kriteria = sk.id_sub_kriteria
+        JOIN kriteria k ON kak.f_id_kriteria = k.id_kriteria) * 0.4)AS norm_C1,
+       (MIN(CASE WHEN k.id_kriteria = 'C2' THEN sk.bobot_sub_kriteria END)/(SELECT SUM(CASE WHEN k.id_kriteria = 'C2' THEN sk.bobot_sub_kriteria END) 
+        FROM alternatif a
+        JOIN kecocokan_alt_kriteria kak ON a.id_alternatif = kak.f_id_alternatif
+        JOIN sub_kriteria sk ON kak.f_id_sub_kriteria = sk.id_sub_kriteria
+        JOIN kriteria k ON kak.f_id_kriteria = k.id_kriteria) * 0.25) AS norm_C2,
+       (MAX(CASE WHEN k.id_kriteria = 'C3' THEN sk.bobot_sub_kriteria END) / (SELECT SUM(CASE WHEN k.id_kriteria = 'C3' THEN sk.bobot_sub_kriteria END) 
+        FROM alternatif a
+        JOIN kecocokan_alt_kriteria kak ON a.id_alternatif = kak.f_id_alternatif
+        JOIN sub_kriteria sk ON kak.f_id_sub_kriteria = sk.id_sub_kriteria
+        JOIN kriteria k ON kak.f_id_kriteria = k.id_kriteria) * 0.2) AS norm_C3,
+       (MAX(CASE WHEN k.id_kriteria = 'C4' THEN sk.bobot_sub_kriteria END) 
+       / 
+       (SELECT SUM(CASE WHEN k.id_kriteria = 'C4' THEN sk.bobot_sub_kriteria END) 
+        FROM alternatif a
+        JOIN kecocokan_alt_kriteria kak ON a.id_alternatif = kak.f_id_alternatif
+        JOIN sub_kriteria sk ON kak.f_id_sub_kriteria = sk.id_sub_kriteria
+        JOIN kriteria k ON kak.f_id_kriteria = k.id_kriteria) * 0.1) AS norm_C4,
+       (MAX(CASE WHEN k.id_kriteria = 'C5' THEN sk.bobot_sub_kriteria END) 
+       / 
+       (SELECT SUM(CASE WHEN k.id_kriteria = 'C5' THEN sk.bobot_sub_kriteria END) 
+        FROM alternatif a
+        JOIN kecocokan_alt_kriteria kak ON a.id_alternatif = kak.f_id_alternatif
+        JOIN sub_kriteria sk ON kak.f_id_sub_kriteria = sk.id_sub_kriteria
+        JOIN kriteria k ON kak.f_id_kriteria = k.id_kriteria) * 0.05) AS norm_C5
+FROM alternatif a
+JOIN kecocokan_alt_kriteria kak ON a.id_alternatif = kak.f_id_alternatif
+JOIN sub_kriteria sk ON kak.f_id_sub_kriteria = sk.id_sub_kriteria
+JOIN kriteria k ON kak.f_id_kriteria = k.id_kriteria
+GROUP BY a.nama_gitar
+UNION ALL
+SELECT 'jumlah',
+       SUM(CASE WHEN k.id_kriteria = 'C1' THEN sk.bobot_sub_kriteria END) AS C1,
+       SUM(CASE WHEN k.id_kriteria = 'C2' THEN sk.bobot_sub_kriteria END) AS C2,
+       SUM(CASE WHEN k.id_kriteria = 'C3' THEN sk.bobot_sub_kriteria END) AS C3,
+       SUM(CASE WHEN k.id_kriteria = 'C4' THEN sk.bobot_sub_kriteria END) AS C4,
+       SUM(CASE WHEN k.id_kriteria = 'C5' THEN sk.bobot_sub_kriteria END) AS C5,
+       NULL AS div_C1,
+       NULL AS div_C2,
+       NULL AS div_C3,
+       NULL AS div_C4,
+       NULL AS div_C5
+FROM alternatif a
+JOIN kecocokan_alt_kriteria kak ON a.id_alternatif = kak.f_id_alternatif
+JOIN sub_kriteria sk ON kak.f_id_sub_kriteria = sk.id_sub_kriteria
+JOIN kriteria k ON kak.f_id_kriteria = k.id_kriteria;
