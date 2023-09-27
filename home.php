@@ -1,8 +1,25 @@
 <?php 
 
-require './config.php';
+require_once './config.php';
 global $koneks;
-$dataGitar = $koneksi->query("SELECT * FROM alternatif");
+$dataGitar = $koneksi->query("SELECT a.nama_gitar, a.id_alternatif, a.gambar, kak.id_alt_kriteria, a.jenis_senar, a.merek, a.nama_toko,
+            MAX(CASE WHEN k.id_kriteria = 'C1' THEN kak.id_alt_kriteria END) AS id_alt_C1,
+            MIN(CASE WHEN k.id_kriteria = 'C2' THEN kak.id_alt_kriteria END) AS id_alt_C2,
+            MIN(CASE WHEN k.id_kriteria = 'C3' THEN kak.id_alt_kriteria END) AS id_alt_C3,
+            MAX(CASE WHEN k.id_kriteria = 'C4' THEN kak.id_alt_kriteria END) AS id_alt_C4,
+            MAX(CASE WHEN k.id_kriteria = 'C1' THEN kak.f_id_sub_kriteria END) AS id_sub_C1,
+            MIN(CASE WHEN k.id_kriteria = 'C2' THEN kak.f_id_sub_kriteria END) AS id_sub_C2,
+            MIN(CASE WHEN k.id_kriteria = 'C3' THEN kak.f_id_sub_kriteria END) AS id_sub_C3,
+            MAX(CASE WHEN k.id_kriteria = 'C4' THEN kak.f_id_sub_kriteria END) AS id_sub_C4,
+            MAX(CASE WHEN k.id_kriteria = 'C1' THEN sk.nama_sub_kriteria END) AS nama_C1,
+            MIN(CASE WHEN k.id_kriteria = 'C2' THEN sk.nama_sub_kriteria END) AS nama_C2,
+            MIN(CASE WHEN k.id_kriteria = 'C3' THEN sk.nama_sub_kriteria END) AS nama_C3,
+            MAX(CASE WHEN k.id_kriteria = 'C4' THEN sk.nama_sub_kriteria END) AS nama_C4
+            FROM alternatif a
+            JOIN kecocokan_alt_kriteria kak ON a.id_alternatif = kak.f_id_alternatif
+            JOIN sub_kriteria sk ON kak.f_id_sub_kriteria = sk.id_sub_kriteria
+            JOIN kriteria k ON kak.f_id_kriteria = k.id_kriteria
+            GROUP BY a.nama_gitar ORDER BY a.id_alternatif DESC");
 ?>
 
 <!DOCTYPE html>
@@ -31,6 +48,34 @@ $dataGitar = $koneksi->query("SELECT * FROM alternatif");
 
     .input-search {
         border-radius: 0.3rem;
+    }
+
+    .card {
+        position: relative;
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        /* Warna latar belakang overlay */
+        color: #fff;
+        /* Warna teks overlay */
+        opacity: 0;
+        /* Mulai dengan opacity 0 (tersembunyi) */
+        transition: opacity 0.3s ease-in-out;
+        /* Efek transisi ketika muncul saat hover */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .card:hover .overlay {
+        opacity: 1;
+        /* Munculkan overlay saat elemen card dihover */
     }
     </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -95,11 +140,20 @@ $dataGitar = $koneksi->query("SELECT * FROM alternatif");
                 <div class="col-lg-12 p-lg-4 m-lg-3">
                     <div class="row d-flex justify-content-center p-lg-5">
                         <?php foreach ($dataGitar as $key => $gitar):?>
-                        <div class="card col-lg-12 m-2" style="width: 20rem;"
+                        <div class="card col-lg-12 m-2 position-relative" style="width: 20rem;"
                             data-aos="fade<?=$key % 3 == 0?'-rigth':'-left';?>" data-aos-easing="linear"
                             data-aos-duration="1500">
-                            <img src="./assets/images/Screenshot (7).png" style="width: 320px; margin-left: -12px;"
-                                class="card-img-top" alt="Gambar <?=$gitar['nama_gitar'];?>">
+                            <img src="./assets/images/<?= $gitar['gambar'] == '-' || $gitar['gambar'] == ''|| $gitar['gambar'] == NULL ? 'default.png': $gitar['gambar']; ?>"
+                                style="width: 319px; margin-left: -12px;" class="card-img-top"
+                                alt="Gambar <?=$gitar['nama_gitar'];?>">
+                            <div class="overlay">
+                                <div class="d-block">
+                                    <h6 class="card-text fw-bold">Nama : <?= $gitar['nama_gitar'];?></h6>
+                                    <p class="card-text fw-bold">Jenis Senar : <?= $gitar['merek'];?></p>
+                                    <p class="card-text fw-bold">Merek : <?= $gitar['merek'];?></p>
+                                    <p class="card-text fw-bold">Nama Toko : <?= $gitar['merek'];?></p>
+                                </div>
+                            </div>
                             <div class="card-body">
                                 <div class="text">
                                     <h6 class="card-text fs-5 fw-bold"><?= $gitar['nama_gitar'];?></h6>
@@ -107,6 +161,7 @@ $dataGitar = $koneksi->query("SELECT * FROM alternatif");
                             </div>
                         </div>
                         <?php endforeach;?>
+
                     </div>
                 </div>
             </div>

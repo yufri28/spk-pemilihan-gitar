@@ -228,6 +228,7 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
     }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 </head>
 
 <body>
@@ -342,7 +343,9 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
                             <div class="container">
                                 <div class="row d-flex justify-content-center" id="cardContainer">
                                     <?php foreach($hasil_perengkingan as $key => $value):?>
-                                    <div class="card col-lg-3 m-2" style="width: 15rem;">
+                                    <div class="card col-lg-3 m-2" style="width: 15rem;"
+                                        data-aos="fade<?=$key % 3 == 0?'-rigth':'-left';?>" data-aos-easing="linear"
+                                        data-aos-duration="1500">
                                         <a class="card-img-top" style="margin-left: -12px; margin-rigth:-12px;"
                                             href="./assets/images/<?= $value['gambar'] == '-' || $value['gambar'] == '' || $value['gambar'] == NULL ? 'default.png': $value['gambar'];?>"
                                             data-lightbox="image-1" data-title="<?= $value['nama_gitar']; ?>"><img
@@ -420,47 +423,9 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
         <script src="./assets/DataTables/jquery.js"></script>
         <script src="./assets/DataTables/datatables.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
-        <!-- jquery datatables -->
+        <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
         <script>
-        $(document).ready(function() {
-            var table = $('#table').DataTable({
-                responsive: true,
-                "lengthMenu": [
-                    [5, 10, 15, 20, 100, -1],
-                    [5, 10, 15, 20, 100, "All"]
-                ],
-                "scrollX": true,
-                "scrollY": true,
-            });
-            var table = $('#table1').DataTable({
-                responsive: true,
-                "lengthMenu": [
-                    [5, 10, 15, 20, 100, -1],
-                    [5, 10, 15, 20, 100, "All"]
-                ],
-                "scrollX": true,
-                "scrollY": true,
-            });
-            var table = $('#table2').DataTable({
-                responsive: true,
-                "lengthMenu": [
-                    [5, 10, 15, 20, 100, -1],
-                    [5, 10, 15, 20, 100, "All"]
-                ],
-                "scrollX": true,
-                "scrollY": true,
-            });
-            var table = $('#table-penilaian').DataTable({
-                responsive: true,
-                "lengthMenu": [
-                    [5, 10, 15, 20, 100, -1],
-                    [5, 10, 15, 20, 100, "All"]
-                ],
-                "scrollX": true,
-                "scrollY": true,
-            });
-            // new $.fn.dataTable.FixedHeader(table);
-        });
+        AOS.init();
         </script>
         <script>
         // Ambil semua tombol "Go Somewhere"
@@ -481,93 +446,6 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
                 }
             });
         });
-        </script>
-        <script>
-        $(document).ready(function() {
-            $("#prioritas_1").change(function() {
-                var prioritas_1 = $("#prioritas_1").val();
-                $.ajax({
-                    type: 'POST',
-                    url: "./user_area/classes/pilihan.php",
-                    data: {
-                        prioritas_1: [prioritas_1]
-                    },
-                    cache: false,
-                    success: function(msg) {
-                        $("#prioritas_2").html(msg);
-                    }
-                });
-            });
-
-            $("#prioritas_2").change(function() {
-                var prioritas_1 = $("#prioritas_1").val();
-                var prioritas_2 = $("#prioritas_2").val();
-                $.ajax({
-                    type: 'POST',
-                    url: "./user_area/classes/pilihan.php",
-                    data: {
-                        prioritas_2: [prioritas_1, prioritas_2]
-                    },
-                    cache: false,
-                    success: function(msg) {
-                        $("#prioritas_3").html(msg);
-                    }
-                });
-            });
-
-            $("#prioritas_3").change(function() {
-                var prioritas_1 = $("#prioritas_1").val();
-                var prioritas_2 = $("#prioritas_2").val();
-                var prioritas_3 = $("#prioritas_3").val();
-                $.ajax({
-                    type: 'POST',
-                    url: "./user_area/classes/pilihan.php",
-                    data: {
-                        prioritas_3: [prioritas_1, prioritas_2, prioritas_3]
-                    },
-                    cache: false,
-                    success: function(msg) {
-                        $("#prioritas_4").html(msg);
-                    }
-                });
-            });
-        });
-        </script>
-
-        <script>
-        // Ambil elemen input, select box, dan kontainer kartu
-        // var filterInput = document.getElementById('filterInput');
-        var filterSelect = document.getElementById('filterSelect');
-        var cardContainer = document.getElementById('cardContainer');
-
-        // Tambahkan event listener pada input dan select box untuk memantau perubahan
-        // filterInput.addEventListener('input', filterCards);
-        filterSelect.addEventListener('change', filterCards);
-
-        // Fungsi untuk memfilter kartu-kartu
-        function filterCards() {
-            // var filterText = filterInput.value.toLowerCase();
-            var filterOption = filterSelect.value.toLowerCase();
-            var cards = cardContainer.getElementsByClassName('card');
-
-            for (var i = 0; i < cards.length; i++) {
-                var card = cards[i];
-                var cardTitle = card.querySelector('.card-kategori').textContent.toLowerCase();
-                var displayStyle = 'block'; // Default: Tampilkan kartu
-
-                // Periksa apakah teks pada judul kartu cocok dengan filter
-                if (filterOption === '' || cardTitle.includes(filterOption)) {
-                    // if (!cardTitle.includes(filterText)) {
-                    //     displayStyle = 'none'; // Sembunyikan kartu jika tidak cocok dengan judul
-                    // }
-                } else {
-                    displayStyle = 'none'; // Sembunyikan kartu jika tidak cocok dengan opsi yang dipilih
-                }
-
-                card.style.display = displayStyle;
-            }
-        }
-        filterSelect.addEventListener('DOMContentLoaded', filterCards);
         </script>
 </body>
 

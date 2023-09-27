@@ -240,10 +240,10 @@ Swal.fire({
                                     <tr>
                                         <td><?=$key+1?></td>
                                         <td><?=$alternatif['nama_gitar'];?></td>
-                                        <td><a href="../assets/images/<?=$alternatif['gambar'];?>"
+                                        <td><a href="../assets/images/<?= $alternatif['gambar'] == '-' || $alternatif['gambar'] == '' || $alternatif['gambar'] == NULL ? 'default.png': $alternatif['gambar'];?>"
                                                 data-lightbox="image-1" data-title="<?=$alternatif['nama_gitar'];?>">
                                                 <img style="width: 50px; height: 50px;"
-                                                    src="../assets/images/<?=$alternatif['gambar'];?>"
+                                                    src="../assets/images/<?= $alternatif['gambar'] == '-' || $alternatif['gambar'] == '' || $alternatif['gambar'] == NULL ? 'default.png': $alternatif['gambar'];?>"
                                                     alt="Gambar <?=$alternatif['nama_gitar'];?>">
                                             </a></td>
 

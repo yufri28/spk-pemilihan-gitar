@@ -1,17 +1,4 @@
 <?php
-// $servername = "localhost";
-// $username = "root";
-// $password = "";
-// $database = "spk_pem_kost";
-
-// // Membuat koneksi
-// $conn = new mysqli($servername, $username, $password, $database);
-
-// // Memeriksa koneksi
-// if ($conn->connect_error) {
-//     die("Koneksi gagal: " . $conn->connect_error);
-// }
-
 // Konfigurasi database
 define('DB_HOST', 'localhost'); // Ganti dengan host database Anda
 define('DB_USERNAME', 'root'); // Ganti dengan username database Anda
