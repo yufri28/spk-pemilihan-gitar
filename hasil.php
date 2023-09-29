@@ -366,9 +366,7 @@ $data = $koneksi->query(
                                         <input type="text" id="searchInput" class="form-control" placeholder="Cari...">
                                     </div>
                                     <?php foreach($hasil_perengkingan as $key => $value):?>
-                                    <div class="card card-gitar col-lg-3 m-2" style="width: 20rem;"
-                                        data-aos="fade<?=$key % 3 == 0?'-rigth':'-left';?>" data-aos-easing="linear"
-                                        data-aos-duration="1500">
+                                    <div class="card card-gitar col-lg-3 m-2" style="width: 20rem;">
                                         <a class="card-img-top" style="margin-left: -12px; margin-rigth:-12px;"
                                             href="./assets/images/<?= $value['gambar'] == '-' || $value['gambar'] == '' || $value['gambar'] == NULL ? 'default.png': $value['gambar'];?>"
                                             data-lightbox="image-1" data-title="<?= $value['nama_gitar']; ?>"><img
