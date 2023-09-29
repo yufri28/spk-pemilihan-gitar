@@ -17,11 +17,22 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
 }
 
 
-$data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a.merek, a.gambar, a.nama_toko,
+$data = $koneksi->query(
+    "SELECT 
+    a.nama_gitar,  
+    a.id_alternatif, 
+    a.jenis_senar, 
+    a.merek, 
+    a.gambar, 
+    a.nama_toko,
     MAX(CASE WHEN k.id_kriteria = 'C1' THEN sk.bobot_sub_kriteria END) AS C1,
     MIN(CASE WHEN k.id_kriteria = 'C2' THEN sk.bobot_sub_kriteria END) AS C2,
     MIN(CASE WHEN k.id_kriteria = 'C3' THEN sk.bobot_sub_kriteria END) AS C3,
     MAX(CASE WHEN k.id_kriteria = 'C4' THEN sk.bobot_sub_kriteria END) AS C4,
+    MAX(CASE WHEN k.id_kriteria = 'C1' THEN sk.nama_sub_kriteria END) AS sub_C1,
+    MIN(CASE WHEN k.id_kriteria = 'C2' THEN sk.nama_sub_kriteria END) AS sub_C2,
+    MIN(CASE WHEN k.id_kriteria = 'C3' THEN sk.nama_sub_kriteria END) AS sub_C3,
+    MAX(CASE WHEN k.id_kriteria = 'C4' THEN sk.nama_sub_kriteria END) AS sub_C4,
     ((MAX(CASE WHEN k.id_kriteria = 'C2' THEN sk.bobot_sub_kriteria END) 
     / 
     (SELECT SUM(CASE WHEN k.id_kriteria = 'C2' THEN sk.bobot_sub_kriteria END) 
@@ -60,6 +71,10 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
     SUM(CASE WHEN k.id_kriteria = 'C2' THEN sk.bobot_sub_kriteria END) AS C2,
     SUM(CASE WHEN k.id_kriteria = 'C3' THEN sk.bobot_sub_kriteria END) AS C3,
     SUM(CASE WHEN k.id_kriteria = 'C4' THEN sk.bobot_sub_kriteria END) AS C4,
+    NULL AS sub_C1,
+    NULL AS sub_C2,
+    NULL AS sub_C3,
+    NULL AS sub_C4,
     NULL AS div_C1,
     NULL AS div_C2
     FROM alternatif a
@@ -74,8 +89,6 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
     }
 
     // end hitung jumlah cost
-
-
     // 6.	Hitung bobot relatif tiap alternatif dengan menggunakan Persamaan 2.5
 
     $total_bobot_rel = 0; 
@@ -123,13 +136,17 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
                     'merek' => $value['merek'],
                     'gambar' => $value['gambar'],
                     'nama_toko' => $value['nama_toko'],
+                    'sub_C1' => $value['sub_C1'],
+                    'sub_C2' => $value['sub_C2'],
+                    'sub_C3' => $value['sub_C3'],
+                    'sub_C4' => $value['sub_C4'],
                 ];
             }
         }
     }else{
         foreach ($data as $key => $value) {
             if ($value['nama_gitar'] != 'jumlah') {
-                $relatif = 1 / $value['S_min'];
+                $relatif = $value['S_min'] != 0 ? 1 / $value['S_min']:0;
                 $total_bobot_rel += $relatif;
             }
         }
@@ -145,7 +162,7 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
         foreach ($data as $key => $value) {
             if ($value['nama_gitar'] != 'jumlah') {
                 $total_S_i = $value['S_min'] * $total_bobot_rel;
-                array_push($Qn,($value['S_plus']+($jumlah_cost/$total_S_i)));
+                array_push($Qn,($value['S_plus']+($total_S_i != 0 ? ($jumlah_cost/$total_S_i):0)));
             }
         }
         $maxQ = max($Qn);
@@ -153,7 +170,7 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
         foreach ($data as $key => $value) {
             if ($value['nama_gitar'] != 'jumlah') {
                 $total_S_i = $value['S_min'] * $total_bobot_rel;
-                $Ui = (($value['S_plus']+($jumlah_cost/$total_S_i)) / $maxQ) * 100;
+                $Ui = (($value['S_plus']+($total_S_i != 0 ? ($jumlah_cost/$total_S_i):0)) / $maxQ) * 100;
 
                 $hasil_perengkingan [] = [
                     'id_alternatif' => $value['id_alternatif'],
@@ -163,6 +180,10 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
                     'merek' => $value['merek'],
                     'gambar' => $value['gambar'],
                     'nama_toko' => $value['nama_toko'],
+                    'sub_C1' => $value['sub_C1'],
+                    'sub_C2' => $value['sub_C2'],
+                    'sub_C3' => $value['sub_C3'],
+                    'sub_C4' => $value['sub_C4'],
                 ];
             }
         }
@@ -246,11 +267,10 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav ms-auto me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link fw-bolder" aria-current="page" href="./home.php">Beranda</a>
+                            <a class="nav-link" aria-current="page" href="./home.php">Beranda</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-bolder active" aria-current="page"
-                                href="./rekomendasi.php">Rekomendasi</a>
+                            <a class="nav-link active" aria-current="page" href="./rekomendasi.php">Rekomendasi</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
@@ -269,8 +289,8 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
                 <!-- <div class="d-md-flex"> -->
                 <div class="col-md-4 mt-3 mb-4">
                     <div class="card shadow-lg">
-                        <div class="card-header" style="background-color:#62B6B7">
-                            <h5 class="text-center pt-2 col-12">
+                        <div class="card-header" style="background-color:#BD9354">
+                            <h5 class="text-center text-white pt-2 col-12">
                                 Masukan Prioritas
                             </h5>
                         </div>
@@ -335,61 +355,89 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
                 </div>
                 <div class="col-md-8 mt-3 mb-3">
                     <div class="card shadow-lg">
-                        <div class="card-header" style="background-color:#62B6B7">
-                            <h5 class="text-start">DAFTAR GITAR</h5>
+                        <div class="card-header" style="background-color:#BD9354">
+                            <h5 class="text-start text-white">DAFTAR GITAR</h5>
                             <hr>
                         </div>
                         <div class="card-body">
                             <div class="container">
                                 <div class="row d-flex justify-content-center" id="cardContainer">
+                                    <div class="mb-3 col-lg-10">
+                                        <input type="text" id="searchInput" class="form-control" placeholder="Cari...">
+                                    </div>
                                     <?php foreach($hasil_perengkingan as $key => $value):?>
-                                    <div class="card col-lg-3 m-2" style="width: 15rem;"
+                                    <div class="card card-gitar col-lg-3 m-2" style="width: 20rem;"
                                         data-aos="fade<?=$key % 3 == 0?'-rigth':'-left';?>" data-aos-easing="linear"
                                         data-aos-duration="1500">
                                         <a class="card-img-top" style="margin-left: -12px; margin-rigth:-12px;"
                                             href="./assets/images/<?= $value['gambar'] == '-' || $value['gambar'] == '' || $value['gambar'] == NULL ? 'default.png': $value['gambar'];?>"
                                             data-lightbox="image-1" data-title="<?= $value['nama_gitar']; ?>"><img
-                                                style="width:238px; height:200px;"
+                                                style="width:318px; height:200px;"
                                                 src="./assets/images/<?= $value['gambar'] == '-' || $value['gambar'] == ''|| $value['gambar'] == NULL ? 'default.png': $value['gambar']; ?>"
                                                 alt="Gambar <?= $value['nama_gitar']; ?>"></a>
 
                                         <div class="card-body">
                                             <small class="card-title"><?= $key + 1; ?>. <?= $value['nama_gitar']; ?>
                                             </small>
-                                            <div id="detail<?= $key; ?>" class="collapse">
-                                                <table class="table" style="font-size: 10pt;">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td><small>Jenis Senar</small></td>
-                                                            <td>:</td>
-                                                            <td><small><?= $value['jenis_senar']; ?></small></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td><small>Merek</small></td>
-                                                            <td>:</td>
-                                                            <td><small>
-                                                                    <?= $value['merek']; ?></small></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td><small>UI</small></td>
-                                                            <td>:</td>
-                                                            <td><small><?= $value['UI']; ?></small>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td><small>Nama Toko</small></td>
-                                                            <td>:</td>
-                                                            <td><small>
-                                                                    <?= $value['nama_toko']; ?></small></td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                            <div class="">
+                                            <!-- <div id="detail<?= $key; ?>" class="collapse"> -->
+                                            <table class="table table-borderless" id="guitarTable"
+                                                style="font-size: 10pt;">
+                                                <tbody>
+                                                    <tr>
+                                                        <td><small>Jenis Senar</small></td>
+                                                        <td>:</td>
+                                                        <td><small><?= $value['jenis_senar']; ?></small></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><small>Merek</small></td>
+                                                        <td>:</td>
+                                                        <td><small>
+                                                                <?= $value['merek']; ?></small></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><small>UI</small></td>
+                                                        <td>:</td>
+                                                        <td><small><?= $value['UI']; ?></small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><small>Nama Toko</small></td>
+                                                        <td>:</td>
+                                                        <td><small>
+                                                                <?= $value['nama_toko']; ?></small></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><small>Range Harga</small></td>
+                                                        <td>:</td>
+                                                        <td><small>
+                                                                <?= $value['sub_C1']; ?></small></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><small>Jenis Gitar</small></td>
+                                                        <td>:</td>
+                                                        <td><small>
+                                                                <?= $value['sub_C2']; ?></small></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><small>Bahan Kayu</small></td>
+                                                        <td>:</td>
+                                                        <td><small>
+                                                                <?= $value['sub_C3']; ?></small></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><small>Bentuk</small></td>
+                                                        <td>:</td>
+                                                        <td><small>
+                                                                <?= $value['sub_C4']; ?></small></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <!-- </div> -->
+                                            <!-- <div class="">
                                                 <button type="button" class="btn col-lg-12 btn-sm btn-primary"
                                                     data-toggle="collapse"
                                                     data-target="#detail<?= $key; ?>">Detail</button>
-                                            </div>
+                                            </div> -->
                                         </div>
                                     </div>
                                     <?php endforeach;?>
@@ -400,6 +448,32 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
                 </div>
             </div>
         </div>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+        $(document).ready(function() {
+            // Ambil elemen input pencarian
+            const $searchInput = $("#searchInput");
+
+            // Tambahkan event handler untuk input pencarian
+            $searchInput.on("input", function() {
+                const searchTerm = $searchInput.val().toLowerCase();
+
+                // Loop melalui semua card gitar
+                $("#cardContainer .card").each(function() {
+                    const $card = $(this);
+                    const cardText = $card.text().toLowerCase();
+
+                    // Periksa apakah teks dalam card mengandung kata kunci pencarian
+                    if (cardText.includes(searchTerm)) {
+                        // Tampilkan card jika cocok
+                        $card.show();
+                    } else {
+                        // Sembunyikan card jika tidak cocok
+                        $card.hide();
+                    }
+                });
+            });
+        });
         </script>
         <style>
         .custom-icon {
@@ -427,7 +501,7 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
         <script>
         AOS.init();
         </script>
-        <script>
+        <!-- <script>
         // Ambil semua tombol "Go Somewhere"
         var buttons = document.querySelectorAll(".btn.btn-primary");
 
@@ -446,7 +520,7 @@ $data = $koneksi->query("SELECT a.nama_gitar,  a.id_alternatif, a.jenis_senar, a
                 }
             });
         });
-        </script>
+        </script> -->
 </body>
 
 </html>

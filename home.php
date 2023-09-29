@@ -118,10 +118,10 @@ $dataGitar = $koneksi->query("SELECT a.nama_gitar, a.id_alternatif, a.gambar, ka
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav ms-auto me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link fw-bolder active" aria-current="page" href="./home.php">Beranda</a>
+                            <a class="nav-link active" aria-current="page" href="./home.php">Beranda</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-bolder" aria-current="page" href="./hasil.php">Rekomendasi</a>
+                            <a class="nav-link" aria-current="page" href="./hasil.php">Rekomendasi</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
