@@ -20,6 +20,7 @@ $dataGitar = $koneksi->query("SELECT a.nama_gitar, a.id_alternatif, a.gambar, ka
             JOIN sub_kriteria sk ON kak.f_id_sub_kriteria = sk.id_sub_kriteria
             JOIN kriteria k ON kak.f_id_kriteria = k.id_kriteria
             GROUP BY a.nama_gitar ORDER BY a.id_alternatif DESC");
+
 ?>
 
 <!DOCTYPE html>

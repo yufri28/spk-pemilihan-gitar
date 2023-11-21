@@ -3,16 +3,36 @@
 require './config.php';
 $post = false;
 
+$C1 = 0;
+$C2 = 0;
+$C3 = 0;
+$C4 = 0;
 $harga = 0;
 $jenis_gitar = 0;
 $bahan_kayu = 0;
 $bentuk = 0;
+$totalBobot = 0;
 if($_SERVER['REQUEST_METHOD'] == "POST"){
     $data_bobot = $_POST['t_bobot_kriteria'];
-    $harga = htmlspecialchars($data_bobot[0]);
-    $jenis_gitar = htmlspecialchars($data_bobot[1]);
-    $bahan_kayu = htmlspecialchars($data_bobot[2]);
-    $bentuk = htmlspecialchars($data_bobot[3]);
+    $C1 = htmlspecialchars($data_bobot[0]);
+    $C2 = htmlspecialchars($data_bobot[1]);
+    $C3 = htmlspecialchars($data_bobot[2]);
+    $C4 = htmlspecialchars($data_bobot[3]);
+
+    $totalBobot = $C1+$C2+$C3+$C4;
+
+    if($totalBobot == 0){
+        $totalBobot = 1;
+        $harga = 1;
+        $jenis_gitar = 1;
+        $bahan_kayu = 1;
+        $bentuk = 1;
+    }else{
+        $harga = $C1/$totalBobot;
+        $jenis_gitar = $C2/$totalBobot;
+        $bahan_kayu = $C3/$totalBobot;
+        $bentuk = $C4/$totalBobot;
+    }
     $post = true;
 }
 
@@ -227,6 +247,40 @@ $data = $koneksi->query(
         border-radius: 0.3rem;
     }
     </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let button_like_link = document.getElementById('btn-like-link');
+
+        button_like_link.addEventListener('click', function() {
+            Swal.fire({
+                title: 'Panduan',
+                text: 'Masukkan Range Bobot Kriteria Dimana Range Bobot Setiap Kriteria Adalah 0 Sampai 100 dan Bobot Terbesar Menunjukan Kriteria Yang Diprioritaskan.',
+                icon: 'warning',
+                confirmButtonText: 'Paham'
+            });
+        });
+    });
+    </script>
+
+    <style>
+    .button-like-link {
+        background: none;
+        border: none;
+        color: blue;
+        /* Warna teks mirip tautan */
+        text-decoration: none;
+        /* Garis bawah mirip tautan */
+        cursor: pointer;
+        /* Jika ingin menyesuaikan tampilan saat digerakkan mouse */
+    }
+
+    .button-like-link:hover {
+        text-decoration: none;
+        /* Menghilangkan garis bawah saat digerakkan mouse */
+        /* Sesuaikan tampilan hover sesuai keinginan */
+    }
+    </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -242,6 +296,8 @@ $data = $koneksi->query(
     <link href="./assets/DataTables/datatables.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
     #mapid,
     .teks {
@@ -250,6 +306,7 @@ $data = $koneksi->query(
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
@@ -270,7 +327,7 @@ $data = $koneksi->query(
                             <a class="nav-link" aria-current="page" href="./home.php">Beranda</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="./rekomendasi.php">Rekomendasi</a>
+                            <a class="nav-link active" aria-current="page" href="./hasil.php">Rekomendasi</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
@@ -291,62 +348,81 @@ $data = $koneksi->query(
                     <div class="card shadow-lg">
                         <div class="card-header" style="background-color:#BD9354">
                             <h5 class="text-center text-white pt-2 col-12">
-                                Masukan Prioritas
+                                Masukkan Range Bobot
                             </h5>
                         </div>
                         <form method="post" id="editKriteriaForm" action="">
                             <div class="card-body">
-                                <div id="error-message" style="color: red; display: none;">
-                                    Total bobot kriteria harus sama dengan 100.
-                                </div>
+                                <button type="button" id="btn-like-link"
+                                    class="button-like-link col-lg-12 d-flex justify-content-end"><small
+                                        class="">Panduan?</small></button>
                                 <script>
-                                function validateTotal() {
-                                    let inputs = document.getElementsByClassName('bobot-kriteria');
-                                    let total = 0;
-
-                                    for (let i = 0; i < inputs.length; i++) {
-                                        total += parseInt(inputs[i].value);
-                                    }
-                                    if (total !== 100) {
-                                        if (total > 100) {
-                                            document.getElementById('error-message').innerText =
-                                                'Total bobot kriteria tidak boleh melebihi 100.';
-                                        } else {
-                                            document.getElementById('error-message').innerText =
-                                                'Total bobot kriteria tidak boleh kurang dari 100.';
-                                        }
-
-                                        document.getElementById('error-message').style.display = 'block';
-                                        return false; // Menghentikan proses submit jika total tidak sama dengan 100 atau melebihi 100
-                                    } else {
-                                        document.getElementById('error-message').style.display = 'none';
-                                        document.getElementById('editKriteriaForm')
-                                            .submit(); // Lakukan pengiriman data form jika validasi berhasil
-                                    }
+                                function updateWeight1(value) {
+                                    document.getElementById('bobotValue1').innerText = 'Bobot Harga: ' +
+                                        value;
                                 }
+
+                                function updateWeight2(value) {
+                                    document.getElementById('bobotValue2').textContent = 'Bobot Jenis Gitar: ' + value;
+                                }
+
+                                function updateWeight3(value) {
+                                    document.getElementById('bobotValue3').textContent =
+                                        'Bobot Bahan Kayu: ' + value;
+                                }
+
+                                function updateWeight4(value) {
+                                    document.getElementById('bobotValue4').textContent =
+                                        'Bobot Bentuk: ' + value;
+                                }
+
+
+                                // Inisialisasi bobot saat halaman dimuat
+                                window.onload = function() {
+                                    var initialValue1 = document.querySelector('.bobot-kriteria1').value;
+                                    var initialValue2 = document.querySelector('.bobot-kriteria2').value;
+                                    var initialValue3 = document.querySelector('.bobot-kriteria3').value;
+                                    var initialValue4 = document.querySelector('.bobot-kriteria4').value;
+                                    updateWeight1(initialValue1);
+                                    updateWeight2(initialValue2);
+                                    updateWeight3(initialValue3);
+                                    updateWeight4(initialValue4);
+                                };
                                 </script>
+                                <hr>
+                                <i><small>Range bobot setiap Kriteria : 0 - 100</small></i>
                                 <div class="mb-3 mt-3">
-                                    <label for="bobot_kriteria" class="form-label">Harga</label>
-                                    <input type="number" max="100" class="form-control bobot-kriteria"
-                                        name="t_bobot_kriteria[]" value="<?=$harga;?>">
+                                    <span id="bobotValue1">Bobot <label for="bobot_kriteria"
+                                            class="form-label">Harga</label>: 0</span>
+                                    <input type="range" min="0" max="100" oninput="updateWeight1(this.value)"
+                                        onload="updateWeight1(this.value)" class="form-range bobot-kriteria1"
+                                        name="t_bobot_kriteria[]" value="<?=$C1;?>">
                                 </div>
                                 <div class="mb-3 mt-3">
-                                    <label for="bobot_kriteria" class="form-label">Jenis Gitar</label>
-                                    <input type="number" max="100" class="form-control bobot-kriteria"
-                                        name="t_bobot_kriteria[]" value="<?=$jenis_gitar?>">
+
+                                    <span id="bobotValue2">Bobot <label for="bobot_kriteria" class="form-label">Jenis
+                                            Gitar</label>: 0</span>
+                                    <input type="range" min="0" max="100" oninput="updateWeight2(this.value)"
+                                        onload="updateWeight2(this.value)" class="form-range bobot-kriteria2"
+                                        name="t_bobot_kriteria[]" value="<?=$C2?>">
                                 </div>
                                 <div class="mb-3 mt-3">
-                                    <label for="bobot_kriteria" class="form-label">Bahan Kayu</label>
-                                    <input type="number" max="100" class="form-control bobot-kriteria"
-                                        name="t_bobot_kriteria[]" value="<?=$bahan_kayu?>">
+
+                                    <span id="bobotValue3">Bobot <label for="bobot_kriteria" class="form-label">Bahan
+                                            Kayu</label>: 0</span>
+                                    <input type="range" min="0" max="100" oninput="updateWeight3(this.value)"
+                                        onload="updateWeight3(this.value)" class="form-range bobot-kriteria3"
+                                        name="t_bobot_kriteria[]" value="<?=$C3?>">
                                 </div>
                                 <div class="mb-3 mt-3">
-                                    <label for="bobot_kriteria" class="form-label">Bentuk</label>
-                                    <input type="number" max="100" class="form-control bobot-kriteria"
-                                        name="t_bobot_kriteria[]" value="<?=$bentuk?>">
+
+                                    <span id="bobotValue4">Bobot <label for="bobot_kriteria"
+                                            class="form-label">Bentuk</label>: 0</span>
+                                    <input type="range" min="0" max="100" oninput="updateWeight4(this.value)"
+                                        onload="updateWeight4(this.value)" class="form-range bobot-kriteria4"
+                                        name="t_bobot_kriteria[]" value="<?=$C4?>">
                                 </div>
-                                <button type="button" name="simpan" onclick="validateTotal()"
-                                    class="btn col-12 btn-outline-primary">
+                                <button type="submit" name="simpan" class="btn col-12 btn-outline-primary">
                                     Simpan
                                 </button>
                             </div>
